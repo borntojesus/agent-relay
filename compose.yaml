@@ -1,0 +1,24 @@
+# agent-relay with Docker Compose: `docker compose up -d --build`.
+# The relay listens on 127.0.0.1:8940 on the host. To reach it from other
+# machines, put a TLS reverse proxy in front and set RELAY_TRUST_PROXY=1.
+services:
+  relay:
+    build: .
+    image: agent-relay:local
+    container_name: agent-relay
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8940:4954"
+    environment:
+      RELAY_DB: /data/relay.db
+      RELAY_HOST: 0.0.0.0
+      RELAY_PORT: "4954"
+    env_file:
+      # Optional: settings and RELAY_BOT_TOKEN_<OWNER>=... (see .env.example).
+      - path: .env
+        required: false
+    volumes:
+      - relay-data:/data
+
+volumes:
+  relay-data:

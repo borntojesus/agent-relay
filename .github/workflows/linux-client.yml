@@ -1,0 +1,67 @@
+name: linux-client
+
+# Builds the Linux owner console (apps/linux, Tauri 2) as .deb and AppImage.
+# Runs on tags linux-v* (for example linux-v0.4.0) and by hand.
+
+on:
+  push:
+    tags: ["linux-v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  linux-x64:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/linux
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential curl wget file pkg-config \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev libssl-dev libxdo-dev \
+            libayatana-appindicator3-dev librsvg2-dev libdbus-1-dev \
+            libfuse2t64 desktop-file-utils patchelf xdg-utils
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/linux/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/linux/pnpm-lock.yaml
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/linux/src-tauri -> target
+
+      - name: Rust tests
+        working-directory: apps/linux/src-tauri
+        run: |
+          mkdir -p ../dist-ui && [ -f ../dist-ui/index.html ] || echo '<!doctype html>' > ../dist-ui/index.html
+          cargo test --locked
+
+      - name: Build .deb and AppImage
+        run: scripts/build-linux.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-relay-linux-x64
+          path: |
+            apps/linux/dist/*.deb
+            apps/linux/dist/*.AppImage
+            apps/linux/dist/SHA256SUMS
+          if-no-files-found: error

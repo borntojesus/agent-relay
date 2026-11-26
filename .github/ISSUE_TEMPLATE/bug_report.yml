@@ -1,0 +1,57 @@
+name: Bug report
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problems go through a private advisory (Security tab), not here.
+        Never paste a real bearer token, bot token or private address.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. pnpm relay owner add alice ...
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `curl http://127.0.0.1:8940/health` or the commit.
+    validations:
+      required: true
+  - type: dropdown
+    id: part
+    attributes:
+      label: Part
+      options:
+        - Server (rooms, approvals, MCP, HTTP)
+        - Worker (tasks on a machine)
+        - Telegram bot
+        - Mac console
+        - Linux console
+        - Docs
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: macOS 15, Node 22.18, Docker 27
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant log lines with tokens removed.
+      render: text

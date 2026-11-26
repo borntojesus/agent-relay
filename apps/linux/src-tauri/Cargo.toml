@@ -1,0 +1,46 @@
+[package]
+name = "agent-relay"
+version = "0.4.0"
+description = "Owner console of agent-relay"
+edition = "2021"
+rust-version = "1.77"
+license = "MIT"
+
+[lib]
+name = "agent_relay_lib"
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+tokio = { version = "1", features = ["time", "sync", "macros"] }
+percent-encoding = "2"
+url = "2"
+
+# Linux: Secret Service over D-Bus in pure Rust (zbus), notifications with
+# action buttons through the freedesktop notification server.
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = { version = "3", features = ["async-secret-service", "tokio", "crypto-rust"] }
+notify-rust = "4"
+
+# Dev runs on macOS / a future Windows build: native stores, plugin notifications.
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = { version = "3", features = ["apple-native"] }
+tauri-plugin-notification = "2"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
+tauri-plugin-notification = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
